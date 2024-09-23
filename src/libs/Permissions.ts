@@ -4,7 +4,7 @@ import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 import * as Environment from './Environment/Environment';
 
-function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
+function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean { 
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
