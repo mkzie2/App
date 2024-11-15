@@ -2,6 +2,8 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Modal} from '@src/types/onyx';
@@ -22,6 +24,8 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
         willAlertModalBecomeVisible: false,
         isVisible: false,
     });
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const prevDimensions = usePrevious({windowWidth, windowHeight});
 
     const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible && shouldRender;
 
@@ -44,6 +48,16 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
     }, [shouldRender]);
 
     const didShow = useRef(false);
+
+    useEffect(() => {
+        if (shouldMeasure || !shouldShow) {
+            return;
+        }
+        if (prevDimensions.windowWidth === windowWidth && prevDimensions.windowHeight === windowHeight) {
+            return;
+        }
+        setShouldMeasure(true);
+    }, [windowWidth, windowHeight, shouldMeasure, shouldShow]);
 
     const closeTooltip = useCallback(() => {
         if (!didShow.current) {
@@ -86,13 +100,14 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
     }, [shouldAutoDismiss, shouldShow, closeTooltip]);
 
     useEffect(() => {
-        if (!shouldMeasure || !shouldShow || didShow.current) {
+        if (!shouldMeasure || !shouldShow) {
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
             didShow.current = true;
+            setShouldMeasure(false);
         }, 500);
         return () => {
             clearTimeout(timerID);
@@ -122,7 +137,7 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
                         }
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
-                        show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
+                        show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip, !didShow.current);
                     },
                 });
             }}
