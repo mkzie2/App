@@ -113,7 +113,7 @@ function IOURequestStepConfirmation({
             return translate('iou.categorize');
         }
         if (isSubmittingFromTrackExpense) {
-            return translate('iou.submitExpense');
+            return translate('iou.confirmDetails');
         }
         if (isSharingTrackExpense) {
             return translate('iou.share');
@@ -122,7 +122,7 @@ function IOURequestStepConfirmation({
             return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.TRACK) {
-            return translate('iou.trackExpense');
+            return translate('iou.confirmDetails');
         }
         if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
@@ -130,7 +130,7 @@ function IOURequestStepConfirmation({
         if (iouType === CONST.IOU.TYPE.INVOICE) {
             return translate('workspace.invoices.sendInvoice');
         }
-        return translate('iou.submitExpense');
+        return translate('iou.confirmDetails');
     }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
     const participants = useMemo(

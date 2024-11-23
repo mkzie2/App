@@ -118,6 +118,8 @@ type GetOptionsConfig = {
     shouldAcceptName?: boolean;
     recentAttendees?: Attendee[];
     shouldBoldTitleByDefault?: boolean;
+    shouldSeparateWorkspaceChat?: boolean;
+    shouldSeparateSelfDMChat?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -148,6 +150,8 @@ type SectionForSearchTerm = {
 };
 type Options = {
     recentReports: ReportUtils.OptionData[];
+    recentWorkspaceChats?: ReportUtils.OptionData[];
+    selfDMChat?: ReportUtils.OptionData | undefined;
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
     currentUserOption: ReportUtils.OptionData | null | undefined;
@@ -1086,6 +1090,8 @@ function getOptions(
         action,
         recentAttendees,
         shouldBoldTitleByDefault = true,
+        shouldSeparateSelfDMChat = false,
+        shouldSeparateWorkspaceChat = false,
     }: GetOptionsConfig,
 ): Options {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
@@ -1338,8 +1344,24 @@ function getOptions(
         });
     }
 
+    let recentWorkspaceChats: ReportUtils.OptionData[] = [];
+    let selfDMChat: ReportUtils.OptionData | undefined;
+
+    if (shouldSeparateWorkspaceChat) {
+        recentWorkspaceChats = recentReportOptions.filter((option) => option.isPolicyExpenseChat);
+        recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
+    };
+
+
+    if (shouldSeparateSelfDMChat) {
+        selfDMChat = recentReportOptions.find((option) => option.isSelfDM);
+        recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
+    }
+
     return {
         personalDetails: personalDetailsOptions,
+        recentWorkspaceChats,
+        selfDMChat,
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
@@ -1432,6 +1454,8 @@ type FilteredOptionsParams = {
     includeInvoiceRooms?: boolean;
     action?: IOUAction;
     sortByReportTypeInSearch?: boolean;
+    shouldSeparateWorkspaceChat?: boolean;
+    shouldSeparateSelfDMChat?: boolean;
 };
 
 // It is not recommended to pass a search value to getFilteredOptions when passing reports and personalDetails.
@@ -1462,6 +1486,8 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
         includeInvoiceRooms = false,
         action,
         sortByReportTypeInSearch = false,
+        shouldSeparateWorkspaceChat = false,
+        shouldSeparateSelfDMChat = false,
     } = params;
     return getOptions(
         {reports, personalDetails},
@@ -1480,6 +1506,8 @@ function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue 
             includeInvoiceRooms,
             action,
             sortByReportTypeInSearch,
+            shouldSeparateWorkspaceChat,
+            shouldSeparateSelfDMChat,
         },
     );
 }
@@ -1664,6 +1692,7 @@ function formatSectionsFromSearchTerm(
     filteredPersonalDetails: ReportUtils.OptionData[],
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
+    filteredRecentWorkspaceChats: ReportUtils.OptionData[] = [],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -1689,7 +1718,8 @@ function formatSectionsFromSearchTerm(
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
         const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm);
-        const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID);
+        const isReportInRecentReports =
+            filteredRecentReports.some((report) => report.accountID === accountID) || filteredRecentWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
         return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
     });
@@ -1752,9 +1782,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
+        const recentWorkspaceChats = options.recentWorkspaceChats?.slice(0, maxRecentReportsToShow);
         const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
         return {
             ...options,
+            recentWorkspaceChats,
             recentReports,
             personalDetails,
         };
@@ -1794,12 +1826,36 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
             return uniqFast(values);
         });
+        const recentWorkspaceChats = filterArrayByMatch(items.recentWorkspaceChats ?? [], term, (item) => {
+            const values: string[] = [];
+            if (item.text) {
+                values.push(item.text);
+            }
+
+            if (item.login) {
+                values.push(item.login);
+                values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
+            }
+
+            if (item.isThread) {
+                if (item.alternateText) {
+                    values.push(item.alternateText);
+                }
+            } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                if (item.subtitle) {
+                    values.push(item.subtitle);
+                }
+            }
+
+            return uniqFast(values);
+        });
         const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) => uniqFast(getPersonalDetailSearchTerms(item)));
 
         const currentUserOptionSearchText = items.currentUserOption ? uniqFast(getCurrentUserSearchTerms(items.currentUserOption)).join(' ') : '';
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
         return {
+            recentWorkspaceChats: recentWorkspaceChats ?? [],
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
             userToInvite: null,
@@ -1807,7 +1863,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         };
     }, options);
 
-    const {recentReports, personalDetails} = matchResults;
+    const {recentReports, personalDetails, recentWorkspaceChats = []} = matchResults;
 
     const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
 
@@ -1833,9 +1889,15 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         recentReports.splice(maxRecentReportsToShow);
     }
 
+    if (maxRecentReportsToShow > 0 && recentWorkspaceChats.length > maxRecentReportsToShow) {
+        recentWorkspaceChats.splice(maxRecentReportsToShow);
+    }
+
     const sortedRecentReports = orderOptions(filteredRecentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports});
     return {
         personalDetails: filteredPersonalDetails,
+        recentWorkspaceChats,
+        selfDMChat: options.selfDMChat,
         recentReports: sortedRecentReports,
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
