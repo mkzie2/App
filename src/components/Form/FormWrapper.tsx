@@ -15,6 +15,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DiscardChangesModal from './DiscardChangesModal';
 import type {FormInputErrors, FormProps, InputRefs} from './types';
 
 type FormWrapperProps = ChildrenProps &
@@ -36,6 +37,8 @@ type FormWrapperProps = ChildrenProps &
 
         /** Callback to submit the form */
         onSubmit: () => void;
+
+        isValueChanged: boolean;
     };
 
 function FormWrapper({
@@ -57,6 +60,7 @@ function FormWrapper({
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     isSubmitDisabled = false,
+    isValueChanged,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
@@ -124,6 +128,7 @@ function FormWrapper({
                         enterKeyEventListenerPriority={1}
                     />
                 )}
+                <DiscardChangesModal hasUnsavedChanges={!isValueChanged} />
             </FormElement>
         ),
         [
@@ -151,6 +156,7 @@ function FormWrapper({
             enabledWhenOffline,
             isSubmitActionDangerous,
             disablePressOnEnter,
+            isValueChanged,
         ],
     );
 

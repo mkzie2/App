@@ -20,6 +20,7 @@ import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+import { deepEqual } from 'fast-equals';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -95,6 +96,15 @@ function FormProvider(
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const initInputValuesRef = useRef<Form>();
+
+    useEffect(() => {
+        if (!!initInputValuesRef.current || isEmptyObject(inputValues)) {
+            return;
+        }
+
+        initInputValuesRef.current = inputValues;
+    }, [inputValues]);
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
@@ -407,6 +417,7 @@ function FormProvider(
                 inputRefs={inputRefs}
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
+                isValueChanged={!deepEqual(inputValues, initInputValuesRef.current)}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>
