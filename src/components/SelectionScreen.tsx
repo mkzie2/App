@@ -146,6 +146,7 @@ function SelectionScreen<T = string>({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
+    console.log(isConnectionEmpty, connectionName, policy?.connections);
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}

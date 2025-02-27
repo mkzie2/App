@@ -12,13 +12,17 @@ import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import type { TranslationPaths } from '@src/languages/types';
+import type { MenuItemWithSubscribedSettings, ToggleItem } from '../../intacct/types';
+import type { DividerLineItem } from '../../netsuite/types';
 
 const reimbursementOrCollectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
 const collectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
@@ -87,17 +91,27 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         </View>
     );
 
-    const qboToggleSettingItems = [
+    const accountingMethod = 'CASH';
+
+    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
-            title: translate('workspace.accounting.autoSync'),
-            subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: !!qboConfig?.autoSync?.enabled,
-            onToggle: () => QuickbooksOnline.updateQuickbooksOnlineAutoSync(policyID, !qboConfig?.autoSync?.enabled),
-            subscribedSetting: CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
-            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC),
-            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], qboConfig?.pendingFields),
+            type: 'menuitem',
+            title: qboConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled'),
+            description: translate('workspace.accounting.autoSync'),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID)),
+            hintText: (() => {
+                if (!qboConfig?.autoSync?.enabled) {
+                    return undefined;
+                }
+                return translate(
+                    `workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths,
+                );
+            })(),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.AUTO_SYNC, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD],
         },
+    ];
+
+    const qboToggleSettingItems = [
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
@@ -162,6 +176,22 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
+            <MenuItemWithTopDescription
+                title={qboConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                description={translate('workspace.accounting.autoSync')}
+                shouldShowRightIcon
+                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QBO_AUTO_SYNC.getRoute(policyID))}
+                brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                hintText={(() => {
+                    if (!qboConfig?.autoSync?.enabled) {
+                        return undefined;
+                    }
+                    return translate(
+                        `workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths,
+                    );
+                })()}
+                style={[styles.ph0]}
+            />
             {qboToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow
                     key={item.title}

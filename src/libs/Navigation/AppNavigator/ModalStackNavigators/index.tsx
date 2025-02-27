@@ -494,7 +494,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_CUSTOM_FORM_ID]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteCustomFormIDPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ACCOUNTING_METHOD]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteAccountingMethodPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetsuiteAccountingMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAutoSyncPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ACCOUNTING_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAccountingMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/NSQSSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NSQSImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/nsqs/import/NSQSCustomersPage').default,

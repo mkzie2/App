@@ -2001,6 +2001,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
     },
+    POLICY_ACCOUNTING_QBO_AUTO_SYNC: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync` as const,
+    },
+    POLICY_ACCOUNTING_QBO_ACCOUNTING_METHOD: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync/accounting-method',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const,
+    },
     POLICY_ACCOUNTING_NSQS_SETUP: {
         route: 'settings/workspaces/:policyID/accounting/nsqs/setup',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/setup` as const,
