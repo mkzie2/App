@@ -84,7 +84,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const policyID = useMemo(() => generatePolicyID(), []);
     const [session, metadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [allPersonalDetails, allPersonalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
@@ -171,7 +171,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
-                        {!isLoadingOnyxValue(metadata) && (
+                        {!isLoadingOnyxValue(metadata, allPersonalDetailsMetadata) && (
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
