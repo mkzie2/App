@@ -13,7 +13,6 @@ function getAcceptableFileTypes(type: string): string | undefined {
     if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE || isMobileChrome()) {
         return;
     }
-
     return 'image/*';
 }
 
