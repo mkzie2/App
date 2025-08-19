@@ -180,6 +180,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         shouldShowRightComponent={card?.isLoadingLastUpdated}
                         rightComponent={
                             <ActivityIndicator
+
                                 style={[styles.popoverMenuIcon]}
                                 color={theme.spinner}
                             />
