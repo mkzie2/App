@@ -10,6 +10,7 @@ function stripCommaFromAmount(amount: string): string {
     return amount.replace(/,/g, '');
 }
 
+
 /**
  * Strip spaces from the amount
  */
