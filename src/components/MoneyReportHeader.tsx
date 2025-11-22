@@ -166,7 +166,7 @@ type MoneyReportHeaderProps = {
     /** Whether back button should be displayed in header */
     shouldDisplayBackButton?: boolean;
 
-    /** Method to trigger when pressing close button of the header */
+    /** Method to trigger when pressing close button of the header (used in header with back button) */
     onBackButtonPress: () => void;
 };
 
