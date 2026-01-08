@@ -21,13 +21,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft, setWorkspaceInviteApproverDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlOnAdvancedApprovalMode} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlOnAdvancedApprovalMode} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -80,9 +80,8 @@ function WorkspaceInviteMessageComponent({
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, {
         canBeMissing: true,
     });
-    const defaultApprover = useMemo(() => getDefaultApprover(policy), [policy]);
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, {canBeMissing: true});
-    const [workspaceInviteApproverDraft = defaultApprover] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, {canBeMissing: true});
+    const [workspaceInviteApproverDraft = currentUserPersonalDetails?.login] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
@@ -116,6 +115,7 @@ function WorkspaceInviteMessageComponent({
         }
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             setWelcomeNote(getDefaultWelcomeNote());
+            setWorkspaceInviteApproverDraft(policyID, currentUserPersonalDetails?.login ?? '');
             return;
         }
         if (isEmptyObject(policy)) {
@@ -124,6 +124,7 @@ function WorkspaceInviteMessageComponent({
 
         if (goToNextStep) {
             setWelcomeNote(getDefaultWelcomeNote());
+            setWorkspaceInviteApproverDraft(policyID, currentUserPersonalDetails?.login ?? '');
             return;
         }
 

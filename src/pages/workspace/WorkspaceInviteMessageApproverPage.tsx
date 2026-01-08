@@ -3,6 +3,7 @@ import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,7 +12,7 @@ import {setWorkspaceInviteApproverDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -24,8 +25,8 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 type WorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER>;
 
 function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageRolePageProps) {
-    const defaultApprover = useMemo(() => getDefaultApprover(policy), [policy]);
-    const [approver = defaultApprover] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${route.params.policyID}`, {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [approver = currentUserPersonalDetails?.login] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${route.params.policyID}`, {
         canBeMissing: true,
     });
     const viewportOffsetTop = useViewportOffsetTop();
